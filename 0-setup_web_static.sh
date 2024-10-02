@@ -29,12 +29,27 @@ sudo ln -s /data/web_static/releases/test /data/web_static/current
 sudo chown -R ubuntu:ubuntu /data/
 
 # Update Nginx configuration
-if ! grep -q "hbnb_static" /etc/nginx/sites-available/default; then
-    echo "    location /hbnb_static/ {" | sudo tee -a /etc/nginx/sites-available/default > /dev/null
-    echo "        alias /data/web_static/current/;" | sudo tee -a /etc/nginx/sites-available/default > /dev/null
-    echo "        index index.html;" | sudo tee -a /etc/nginx/sites-available/default > /dev/null
-    echo "    }" | sudo tee -a /etc/nginx/sites-available/default > /dev/null
-fi
+sudo mv /etc/nginx/nginx.conf /etc/nginx/default_nginx.conf
+sudo touch /etc/nginx/nginx.conf 
+
+printf %s "http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    server {
+        root   /var/www/html;
+    	index  index.html index.htm;
+    	
+    	location /hbnb_static {
+            alias /data/web_static/current;
+            index index.html index.htm;
+        }
+
+    	location /redirect_me {
+            return 301 http://cuberule.com/;
+    	}
+    }
+}" > /etc/nginx/nginx.conf 
 
 # Restart Nginx
 sudo service nginx restart
